@@ -7,9 +7,12 @@ import { useEffect, useState } from "react";
 import LeaveRequestModal, {
   LeaveRequestForm,
 } from "../common/CreateLeaveModal";
-import { useAppSelector } from "../services/state/hooks";
+import { useAppDispatch, useAppSelector } from "../services/state/hooks";
+import { useRouter } from "next/navigation";
+import { clearLeavesList } from "../services/state/leave/leaveSlice";
 
 const Dashboard = () => {
+  const router = useRouter();
   const { onFetchLeave, onRequestLeave, onExport } = useDashboard();
   const [open, setOpen] = useState(false);
   const { role } = useAppSelector((state) => {
@@ -18,6 +21,8 @@ const Dashboard = () => {
     };
   });
 
+  const dispatch = useAppDispatch();
+
   const handleSubmit = (data: LeaveRequestForm) => {
     const leaveData = {
       id_leave_type: Number(data.jenisCuti),
@@ -25,6 +30,10 @@ const Dashboard = () => {
       end_date: data.tanggalSelesai,
     };
     onRequestLeave(leaveData);
+  };
+  const handleLogout = () => {
+    dispatch(clearLeavesList());
+    router.replace("/login");
   };
   useEffect(() => {
     setTimeout(() => {
@@ -86,6 +95,14 @@ const Dashboard = () => {
                 Request Leave
               </Button>
             )}
+            <Button
+              variant="contained"
+              color="warning"
+              className="w-full sm:my-0 my-12 text-white"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
           </div>
         </div>
       </div>

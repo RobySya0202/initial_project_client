@@ -23,8 +23,8 @@ export const Register = createAsyncThunk(
       password?: string;
       first_name?: string;
       last_name?: string;
-      birth_date?: string;
-      gender?: string;
+      birthday?: string;
+      sex?: string;
     },
     { rejectWithValue }
   ) => {

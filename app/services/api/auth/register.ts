@@ -6,15 +6,20 @@ const RegisterApi = async (userData: {
   password?: string;
   first_name?: string;
   last_name?: string;
-  birth_date?: string;
-  gender?: string;
+  birthday?: string;
+  sex?: string;
 }): Promise<AxiosResponse<AuthResponse>> => {
-  const body = JSON.stringify(userData);
-  const response = (await axios.post("http://localhost:8000/api/auth/register", body, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })) as AxiosResponse<AuthResponse>;
+  const body = JSON.stringify({ ...userData });
+  console.log(body);
+  const response = (await axios.post(
+    "http://localhost:8000/api/auth/register",
+    body,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )) as AxiosResponse<AuthResponse>;
   return response;
 };
 

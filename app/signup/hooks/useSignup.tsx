@@ -1,8 +1,9 @@
+"use client";
 import { Register } from "@/app/services/state/auth/authSlice";
 import { useAppDispatch } from "@/app/services/state/hooks";
-import { useRouter } from "next/router";
+import moment from "moment";
+import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { useDispatch } from "react-redux";
 
 export const useSignup = () => {
   const [gender, setGender] = useState("0");
@@ -17,7 +18,8 @@ export const useSignup = () => {
       password: data.get("password")?.toString(),
       first_name: data.get("first_name")?.toString(),
       last_name: data.get("last_name")?.toString(),
-      birth_date: data.get("birth_date")?.toString(),
+      birthday: moment(data.get("birthday")?.toString()).format("YYYY-MM-DD"),
+      sex: gender,
     };
     dispatch(Register(userData)).then((res) => {
       if (res.meta.requestStatus === "fulfilled") {

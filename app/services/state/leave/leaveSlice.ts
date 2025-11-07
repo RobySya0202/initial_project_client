@@ -26,7 +26,11 @@ export const fetchLeaves = createAsyncThunk(
 const leaveSlice = createSlice({
   name: "leaveSlice",
   initialState,
-  reducers: {},
+  reducers: {
+    clearLeavesList: (state) => {
+      state.data = [];
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLeaves.pending, (state) => {
@@ -43,4 +47,5 @@ const leaveSlice = createSlice({
 });
 
 export type authSliceType = typeof leaveSlice;
+export const { clearLeavesList } = leaveSlice.actions;
 export default leaveSlice.reducer;

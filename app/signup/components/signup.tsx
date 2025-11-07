@@ -54,7 +54,7 @@ const Signup = () => {
           },
         }}
       />
-      <Datepicker label="Birthdate" name="birthdate" />
+      <Datepicker label="Birthdate" name="birthday" />
       <FormControl
         sx={{
           display: "flex",
