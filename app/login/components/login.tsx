@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-
 import { Button, Paper, TextField, Typography } from "@mui/material";
 import { useLogin } from "../hooks/useLogin";
 
 const Login = () => {
-  const [onLogin] = useLogin();
+  const { onLogin } = useLogin();
 
   return (
     <form
@@ -17,7 +15,7 @@ const Login = () => {
         Login
       </Typography>
       <TextField
-        id="email"
+        name="email"
         label="Email"
         size="small"
         slotProps={{
@@ -27,7 +25,7 @@ const Login = () => {
         }}
       />
       <TextField
-        id="password"
+        name="password"
         label="Password"
         size="small"
         slotProps={{
@@ -36,7 +34,9 @@ const Login = () => {
           },
         }}
       />
-      <Button variant="contained">Login</Button>
+      <Button variant="contained" type="submit">
+        Login
+      </Button>
 
       <Typography variant="subtitle2" color="black">
         Belum punya akun <a href="/signup">Register</a>
