@@ -16,7 +16,7 @@ export const fetchLeaves = createAsyncThunk(
   async (arg: { token: string }, { rejectWithValue }) => {
     try {
       const response = await fetchLeaveApi(arg.token);
-      return response;
+      return response.data;
     } catch (error) {
       rejectWithValue(error);
     }
@@ -38,7 +38,7 @@ const leaveSlice = createSlice({
       })
       .addCase(fetchLeaves.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.data = action.payload?.data.data;
+        state.data = action.payload?.data;
       })
       .addCase(fetchLeaves.rejected, (state) => {
         state.isLoading = false;

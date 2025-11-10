@@ -1,113 +1,74 @@
 "use client";
-import { GetApp } from "@mui/icons-material";
-import { Button, Typography } from "@mui/material";
-import { Table } from "./components/table";
-import { useDashboard } from "./hooks/useDashboard";
-import { useEffect, useState } from "react";
-import LeaveRequestModal, {
-  LeaveRequestForm,
-} from "../common/CreateLeaveModal";
-import { useAppDispatch, useAppSelector } from "../services/state/hooks";
-import { useRouter } from "next/navigation";
-import { clearLeavesList } from "../services/state/leave/leaveSlice";
+
+import { Face, Logout } from "@mui/icons-material";
+import { Box, Chip, IconButton, Paper, Typography } from "@mui/material";
+import { useAppSelector } from "../services/state/hooks";
+import ManageAccountsTwoToneIcon from "@mui/icons-material/ManageAccountsTwoTone";
+import CalendarMonthTwoToneIcon from "@mui/icons-material/CalendarMonthTwoTone";
+import { DashboardCard } from "./components/DashboardCard";
 
 const Dashboard = () => {
-  const router = useRouter();
-  const { onFetchLeave, onRequestLeave, onExport } = useDashboard();
-  const [open, setOpen] = useState(false);
-  const { role } = useAppSelector((state) => {
+  const { user } = useAppSelector((state) => {
     return {
-      role: state.authReducer.user?.role,
+      user: state.authReducer.user,
     };
   });
-
-  const dispatch = useAppDispatch();
-
-  const handleSubmit = (data: LeaveRequestForm) => {
-    const leaveData = {
-      id_leave_type: Number(data.jenisCuti),
-      start_date: data.tanggalMulai,
-      end_date: data.tanggalSelesai,
-    };
-    onRequestLeave(leaveData);
-  };
-  const handleLogout = () => {
-    dispatch(clearLeavesList());
-    router.replace("/login");
-  };
-  useEffect(() => {
-    setTimeout(() => {
-      onFetchLeave();
-    }, 1500);
-  }, []);
+  const totalUser = 10;
+  const totalLeaveRequests = 25;
   return (
-    <div className="bg-white">
-      <LeaveRequestModal
-        open={open}
-        onClose={() => setOpen(false)}
-        onSubmit={handleSubmit}
-      />
-      <div className="w-full p-24 bg-blue-500">
-        {" "}
-        <div className="xl:flex md:flex sm:flex flex-row gap-10 justify-between items-center">
-          <div className="flex items-center gap-4 sm:mb-0 mb-8">
-            <GetApp className="text-7xl bg-grey-200 p-8 rounded-6" />
-            <div className="header-title">
-              <Typography
-                variant="h4"
-                className="mx-6 text-xl mb-0 font-semibold leading-tight tracking-tight md:leading-none"
-              >
-                Leavo
-              </Typography>
-              <Typography
-                className="mx-6 leading-6 truncate"
-                color="text.secondary"
-              >
-                Employee Leave History
-              </Typography>
-            </div>
-          </div>
-          <div className="sm:flex flex-row gap-10 items-center">
-            {role === "Admin" && (
-              <Button
-                variant="contained"
-                color="primary"
-                className="w-full sm:my-0 my-12 text-white"
-                aria-label="Export To Excel"
-                type="button"
-                size="medium"
-                onClick={onExport}
-              >
-                Export
-              </Button>
-            )}
-
-            {role === "Employee" && (
-              <Button
-                variant="contained"
-                color="secondary"
-                className="w-full sm:my-0 my-12 text-white"
-                aria-label="Export To Excel"
-                type="button"
-                size="medium"
-                onClick={setOpen.bind(this, true)}
-              >
-                Request Leave
-              </Button>
-            )}
-            <Button
-              variant="contained"
-              color="warning"
-              className="w-full sm:my-0 my-12 text-white"
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div className="w-full p-24">
-        <Table />
+    <div className="w-full bg-blue-100 h-screen py-20 px-72">
+      <div className="grid grid-cols-2 gap-5">
+        <Paper
+          sx={{ borderRadius: "15px" }}
+          elevation={8}
+          className="flex flex-row justify-between h-11 col-span-2 content-center px-6 mb-10"
+        >
+          <h5 className="flex items-center font-bold text-[#9E9E9E]">Leavo</h5>
+          <Box className="flex flex-row justify-end items-center gap-4">
+            <Chip
+              icon={<Face />}
+              label={user ? user.first_name + user.last_name : "-"}
+            />
+            <IconButton aria-label="logout" sx={{ color: "#81D4FA" }}>
+              <Logout />
+            </IconButton>
+          </Box>
+        </Paper>
+        <Paper
+          sx={{
+            borderRadius: "15px",
+            backgroundImage:
+              'linear-gradient(to right, rgba(0,0,0,0), white),url("/calendar2.jpg")',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+          elevation={8}
+          className="col-span-2 h-52 flex justify-end p-10"
+        >
+          <Box>
+            <Typography variant="h3" className="font-bold mb-4">
+              Welcome, {user ? ` ${user.first_name}` : " -"}
+            </Typography>
+            <Typography variant="body1" className="text-[#616161]">
+              Here quick overview of your leave management system dashboard.
+            </Typography>
+          </Box>
+        </Paper>
+        <DashboardCard
+          icon={ManageAccountsTwoToneIcon}
+          title="User Management"
+          subtitle="Overseve and control all user accounts and roles within a system"
+          latestInfo={`${totalUser} Active Users`}
+          route="users"
+        />
+        <DashboardCard
+          icon={CalendarMonthTwoToneIcon}
+          title="Leave Management"
+          subtitle="Manage employee leave requests, approvals, and balances efficiently"
+          latestInfo={`${totalLeaveRequests} Leave Requests`}
+          route="leaves"
+        />
       </div>
     </div>
   );

@@ -1,20 +1,27 @@
-import { createSlice } from '@reduxjs/toolkit';
+// services/state/alert/alertSlice.ts
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState = {
-  message: null,
-  type: null, // e.g., 'success', 'error', 'warning'
-};
+interface AlertState {
+  message: string | null;
+  type: "success" | "error" | "info" | null;
+}
+
+const initialState: AlertState = { message: null, type: null };
 
 const alertSlice = createSlice({
-  name: 'alert',
+  name: "alert",
   initialState,
   reducers: {
-    // Action to show the alert
-    showAlert: (state, action) => {
+    showAlert: (
+      state,
+      action: PayloadAction<{
+        message: string;
+        type: "success" | "error" | "info";
+      }>
+    ) => {
       state.message = action.payload.message;
-      state.type = action.payload.type || 'info';
+      state.type = action.payload.type;
     },
-    // Action to hide the alert
     hideAlert: (state) => {
       state.message = null;
       state.type = null;

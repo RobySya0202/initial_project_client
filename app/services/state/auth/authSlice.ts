@@ -30,7 +30,7 @@ export const Register = createAsyncThunk(
   ) => {
     try {
       const res = await RegisterApi(userData);
-      return res;
+      return res.data;
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -65,11 +65,11 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.isLoading = false;
         state.user = {
-          ...action.payload.data.user,
-          role: action.payload.data.user.role.name,
-          id: Number(action.payload.data.user.id),
+          ...action.payload.user,
+          role: action.payload.user.role.name,
+          id: Number(action.payload.user.id),
         };
-        state.token = action.payload.data.token.split("|")[1];
+        state.token = action.payload.token.split("|")[1];
         localStorage.setItem("token", state.token || "");
       })
       .addCase(Register.pending, (state) => {
