@@ -12,61 +12,21 @@ import CreateUserForm, { UserCreateFormValues } from "./components/CreateForm";
 import { StoreUserApi } from "../services/api/users/store";
 import { showAlert } from "../services/state/alert/alertSlice";
 import { useRouter } from "next/navigation";
-
-const columns: GridColDef<TUser>[] = [
-  {
-    field: "name",
-    headerName: "Nama Lengkap",
-    flex: 1,
-    renderCell: (param: GridRenderCellParams<TUser>) =>
-      param.row.first_name + " " + param.row.last_name,
-  },
-  {
-    field: "email",
-    headerName: "email",
-    flex: 1,
-  },
-  {
-    field: "sex",
-    headerName: "Jenis Kelamin",
-    flex: 1,
-    renderCell: (param: GridRenderCellParams<TUser>) =>
-      param.row.sex == 1 ? (
-        <Chip color="primary" label="Perempuan" />
-      ) : (
-        <Chip color="secondary" label="Laki - Laki" />
-      ),
-  },
-  {
-    field: "birthday",
-    headerName: "Tanggal Lahir",
-    flex: 1,
-    renderCell: (param: GridRenderCellParams<TUser>) =>
-      moment(param.row.birthday).format("DD-MM-YYYY"),
-  },
-  {
-    field: "action",
-    headerName: "Aksi",
-    flex: 1,
-    renderCell: (param: GridRenderCellParams<TUser>) => (
-      <Box className="flex gap-2">
-        <Button variant="contained" startIcon={<Edit />} color="success">
-          Edit
-        </Button>
-        <Button variant="contained" startIcon={<Delete />} color="error">
-          Hapus
-        </Button>
-      </Box>
-    ),
-  },
-];
+import UserForm from "./components/UserForm";
+import { fetchUserApi } from "../services/api/users/show";
+import ConfirmationDialog from "../common/ConfirmationModal";
 
 const UserPage = () => {
   const dispatch = useAppDispatch();
-  const { onFetchUsers } = useUsers();
+  const { onFetchUsers, onFetchUser, onEditUser, onDeleteUser } = useUsers();
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(0);
   const limitOptions = [3, 5, 10, 20];
+  const [currentUserEdit, setCurrentUserEdit] = useState<
+    UserCreateFormValues | undefined
+  >(undefined);
+  const [currentUserEditId, setCurrentUserId] = useState<number>(0);
+  const [currentUserDeleteId, setCurentUserDeleteId] = useState<number>(0);
   const paginationModel = useMemo(
     () => ({ page, pageSize: limit }),
     [page, limit]
@@ -78,45 +38,164 @@ const UserPage = () => {
       pagination: state.userReducer.pagination,
     };
   });
-  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [openFormModal, setOpenFormModal] = useState(false);
+  const [openDeleteConfirmationModal, setOpenDeleteConfirmationModal] =
+    useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const router = useRouter();
 
   const handleOpenCreateForm = () => {
-    setOpenCreateModal(true);
+    setModalMode("create");
+    setOpenFormModal(true);
   };
 
-  const onSubmitCreateUser = async (data: UserCreateFormValues) => {
-    try {
-      await StoreUserApi(data);
-      dispatch(
-        showAlert({
-          message: "Success Create New User",
-          type: "success",
-        })
-      );
-    } catch (error) {
-      dispatch(
-        showAlert({
-          message: "Failed Create User",
-          type: "error",
-        })
-      );
+  const handleOpenEditForm = (id: number) => {
+    onFetchUser(id).then((res) => {
+      const user: UserCreateFormValues = {
+        email: res?.email || "",
+        first_name: res?.first_name || "",
+        last_name: res?.last_name || "",
+        birthday: res ? moment(res.birthday).format("YYYY-MM-DD") : "",
+        sex: res ? String(res.sex) : "",
+        password: "",
+      };
+      setCurrentUserEdit(user);
+      setModalMode("edit");
+      setCurrentUserId(id);
+      setOpenFormModal(true);
+    });
+  };
+
+  const onSubmitUserForm = async (data: UserCreateFormValues) => {
+    switch (modalMode) {
+      case "create":
+        try {
+          await StoreUserApi(data);
+          dispatch(
+            showAlert({
+              message: "Success Create New User",
+              type: "success",
+            })
+          );
+        } catch (error) {
+          dispatch(
+            showAlert({
+              message: "Failed Create User",
+              type: "error",
+            })
+          );
+        }
+        break;
+      case "edit":
+        const status = await onEditUser(
+          { ...data, id: currentUserEditId, sex: Number(data.sex) },
+          currentUserEditId
+        );
+        if (status !== 200) {
+          dispatch(showAlert({ message: "Failed Update User", type: "error" }));
+        } else {
+          dispatch(
+            showAlert({ message: "Update User Successfully", type: "success" })
+          );
+        }
+        break;
+      default:
+        break;
     }
+    onFetchUsers(page, limit);
   };
 
-  
+  const handleDeleteUser = () => {
+    onDeleteUser(currentUserDeleteId).then((res) => {
+      if (res !== 200) {
+        dispatch(showAlert({ message: "Failed Delete User", type: "error" }));
+        setOpenDeleteConfirmationModal(false);
+      } else {
+        dispatch(
+          showAlert({ message: "Success Delete User", type: "success" })
+        );
+      }
+      onFetchUsers(page, limit);
+    });
+  };
 
+  const columns = useMemo(() => {
+    return [
+      {
+        field: "name",
+        headerName: "Nama Lengkap",
+        flex: 1,
+        renderCell: (param: GridRenderCellParams<TUser>) =>
+          param.row.first_name + " " + param.row.last_name,
+      },
+      {
+        field: "email",
+        headerName: "email",
+        flex: 1,
+      },
+      {
+        field: "sex",
+        headerName: "Jenis Kelamin",
+        flex: 1,
+        renderCell: (param: GridRenderCellParams<TUser>) =>
+          param.row.sex == 1 ? (
+            <Chip color="primary" label="Perempuan" />
+          ) : (
+            <Chip color="secondary" label="Laki - Laki" />
+          ),
+      },
+      {
+        field: "birthday",
+        headerName: "Tanggal Lahir",
+        flex: 1,
+        renderCell: (param: GridRenderCellParams<TUser>) =>
+          moment(param.row.birthday).format("DD-MM-YYYY"),
+      },
+      {
+        field: "action",
+        headerName: "Aksi",
+        flex: 1,
+        renderCell: (param: GridRenderCellParams<TUser>) => (
+          <Box className="flex gap-2">
+            <Button
+              variant="contained"
+              startIcon={<Edit />}
+              color="success"
+              onClick={() => {
+                handleOpenEditForm(param.row.id);
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Delete />}
+              color="error"
+              onClick={() => {
+                setOpenDeleteConfirmationModal(true);
+                setCurentUserDeleteId(param.row.id);
+              }}
+            >
+              Hapus
+            </Button>
+          </Box>
+        ),
+      },
+    ];
+  }, [rows]);
   useEffect(() => {
     onFetchUsers(page, limit);
   }, [paginationModel, page, limit]);
   return (
     <div className="w-full h-screen bg-blue-100 flex flex-col py-20 px-50">
-      <CreateUserForm
-        open={openCreateModal}
+      <UserForm
+        open={openFormModal}
         onClose={() => {
-          setOpenCreateModal(false);
+          setOpenFormModal(false);
         }}
-        onSubmit={onSubmitCreateUser}
+        onSubmit={onSubmitUserForm}
+        initialData={currentUserEdit}
+        mode={modalMode}
       />
       <Paper
         sx={{ borderRadius: "15px" }}
@@ -171,6 +250,17 @@ const UserPage = () => {
           rowCount={pagination.total}
         />
       </Paper>
+
+      <ConfirmationDialog
+        open={openDeleteConfirmationModal}
+        onClose={() => {
+          setOpenDeleteConfirmationModal(false);
+        }}
+        onConfirm={handleDeleteUser}
+        title="Delete User"
+        message="Are you sure want to delete this user ?"
+        confirmText="delete"
+      />
     </div>
   );
 };

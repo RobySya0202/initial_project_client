@@ -27,11 +27,11 @@ type UserFormModalProps = {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: UserCreateFormValues) => void;
-  initialData?: UserCreateFormValues;
+  initialData: UserCreateFormValues | undefined;
   mode?: "create" | "edit";
 };
 
-export default function CreateUserForm({
+export default function UserForm({
   open,
   onClose,
   onSubmit,
@@ -182,10 +182,22 @@ export default function CreateUserForm({
               <Controller
                 name="password"
                 control={control}
-                rules={{
-                  required: "Password is required",
-                  minLength: { value: 6, message: "Minimum 6 characters" },
-                }}
+                rules={
+                  isEdit
+                    ? {
+                        minLength: {
+                          value: 6,
+                          message: "Minimum 6 characters",
+                        },
+                      }
+                    : {
+                        required: "Password is required",
+                        minLength: {
+                          value: 6,
+                          message: "Minimum 6 characters",
+                        },
+                      }
+                }
                 render={({ field }) => (
                   <TextField
                     {...field}
